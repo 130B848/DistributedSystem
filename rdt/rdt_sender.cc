@@ -122,7 +122,7 @@ void Sender_FromUpperLayer(struct message *msg)
         pkt.data[2] = 0xFF; // 0xFF represents invalid
         
         unsigned short *csp = (unsigned short *)(pkt.data + 3);
-        *csp = checksum(msg->data+cursor, maxpayload_size);
+        *csp = checksum(msg->data+cursor, maxpayload_size - 1);
         
 	    memcpy(pkt.data+header_size, msg->data+cursor, maxpayload_size);
         
@@ -134,7 +134,7 @@ void Sender_FromUpperLayer(struct message *msg)
                 Sender_StartTimer(TIMEOUT);
             }
             window.size++;
-            printf("send packet num = %d data = %s\n", pkt.data[1], &pkt.data[5]);
+            //printf("send packet num = %d data = %s\n", pkt.data[1], &pkt.data[5]);
 	        Sender_ToLowerLayer(&pkt);
         }
 
@@ -153,7 +153,7 @@ void Sender_FromUpperLayer(struct message *msg)
         pkt.data[2] = 0xFF; // 0xFF represents invalid
         
         unsigned short *csp = (unsigned short *)(pkt.data + 3);
-        *csp = checksum(msg->data+cursor, msg->size-cursor);
+        *csp = checksum(msg->data+cursor, msg->size - cursor - 1);
         
 	    memcpy(pkt.data+header_size, msg->data+cursor, pkt.data[0]);
 
@@ -165,7 +165,7 @@ void Sender_FromUpperLayer(struct message *msg)
                 Sender_StartTimer(TIMEOUT);
             }
             window.size++;
-            printf("send packet num = %d data = %s\n", pkt.data[1], &pkt.data[5]);
+            //printf("send packet num = %d data = %s\n", pkt.data[1], &pkt.data[5]);
 	        Sender_ToLowerLayer(&pkt);
         }
     }
@@ -178,7 +178,7 @@ void Sender_FromLowerLayer(struct packet *pkt)
     //printf("enter Sender_FromLowerLayer\n");
     int header_size = 5;
     int pkt_size = pkt->data[0];
-    unsigned short verify = checksum(pkt->data+header_size, pkt_size);
+    unsigned short verify = checksum(pkt->data+header_size, pkt_size - 1);
     unsigned short checksum = *(unsigned short *)(pkt->data + 3);
     if (verify != checksum) {
         printf("sender checksum = %u verify = %u\n", checksum, verify);

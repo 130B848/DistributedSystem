@@ -99,17 +99,16 @@ void Receiver_FromLowerLayer(struct packet *pkt)
     /* 1-byte header indicating the size of the payload */
     int header_size = 5;
     int pkt_size = pkt->data[0];
-    pkt->data[RDT_PKTSIZE - 1] = 0;
-    unsigned short verify = checksum(pkt->data+header_size, pkt_size);
+    //pkt->data[RDT_PKTSIZE - 1] = 0;
+    unsigned short verify = checksum(pkt->data+header_size, pkt_size - 1);
     unsigned short checksum = *(unsigned short *)(pkt->data + 3);
     int seqnum = pkt->data[1] & 0xFF;
-    printf("seqnum = %d checksum = %u verify = %u data = %s\n", seqnum, checksum, verify, &pkt->data[5]);
     if (verify != checksum) { 
+        printf("seqnum = %d checksum = %u verify = %u data = %s\n", seqnum, checksum, verify, &pkt->data[5]);
         return;
     }
     
     //int seqnum = pkt->data[1] & 0xFF;
-    //printf("seqnum = %d\n", seqnum);
     pkt->data[1] = 0xFF; // 0xFF represents invalid
     pkt->data[2] = seqnum & 0xFF;
     /* out of range packet also need ACK */
@@ -135,11 +134,15 @@ void Receiver_FromLowerLayer(struct packet *pkt)
 
     msg->data = (char*) malloc(msg->size);
     ASSERT(msg->data!=NULL);
+    memset(msg->data, 0, msg->size);
     memcpy(msg->data, pkt->data+header_size, msg->size);
+    printf("receive packet num = %d data = %s\n", seqnum, &pkt->data[5]);
 
     buffer.msgs[seqnum] = msg;
+    //printf("receive packet num = %d data = %s\n", seqnum, buffer.msgs[seqnum]->data);
     while (buffer.msgs[buffer.seqnum]) {
-        Receiver_ToUpperLayer(msg);
+        printf("Receiver_ToUpperLayer num = %d size = %d data = %s\n", buffer.seqnum, buffer.msgs[buffer.seqnum]->size, buffer.msgs[buffer.seqnum]->data);
+        Receiver_ToUpperLayer(buffer.msgs[buffer.seqnum]);
         if (buffer.msgs[buffer.seqnum] && buffer.msgs[buffer.seqnum]->data) {
             free(buffer.msgs[buffer.seqnum]->data);
         }
