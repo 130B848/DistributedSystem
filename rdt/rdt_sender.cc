@@ -26,7 +26,7 @@
 #include <vector>
 
 const int WINDOW_SIZE = 10;
-const int MAX_SEQ = 25;
+const int MAX_SEQ = 32;
 const double TIMEOUT = 0.3;
 
 static struct SenderWindow {
@@ -142,7 +142,7 @@ void Sender_FromUpperLayer(struct message *msg)
                 Sender_StartTimer(TIMEOUT);
             }
             window.size++;
-            //printf("send packet num = %d size = %d data = %s\n", pkt.data[1], pkt.data[0], &pkt.data[5]);
+            //printf("000000000000000000send packet num = %d size = %d data = %s\n", pkt.data[1], pkt.data[0], &pkt.data[5]);
 	        Sender_ToLowerLayer(&pkt);
             //window.debug();
             //buffer.debug();
@@ -175,7 +175,7 @@ void Sender_FromUpperLayer(struct message *msg)
                 Sender_StartTimer(TIMEOUT);
             }
             window.size++;
-            //printf("send packet num = %d size = %d data = %s\n", pkt.data[1], pkt.data[0], &pkt.data[5]);
+            //printf("000000000000000000send packet num = %d size = %d data = %s\n", pkt.data[1], pkt.data[0], &pkt.data[5]);
 	        Sender_ToLowerLayer(&pkt);
             //window.debug();
             //buffer.debug();

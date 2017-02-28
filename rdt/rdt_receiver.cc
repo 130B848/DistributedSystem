@@ -25,7 +25,7 @@
 #include <vector>
 
 const int WINDOW_SIZE = 10;
-const int MAX_SEQ = 25;
+const int MAX_SEQ = 32;
 const double TIMEOUT = 0.3;
 
 static struct ReceiverWindow {
@@ -154,7 +154,7 @@ void Receiver_FromLowerLayer(struct packet *pkt)
     //printf("receive packet num = %d data = %s\n", seqnum, &pkt->data[5]);
 
     buffer.msgs[seqnum] = msg;
-    //printf("receive packet num = %d size = %d data = %s\n", seqnum, msg->size, buffer.msgs[seqnum]->data);
+    //printf("seqnum = %d checksum = %u verify = %u data = %s\n", seqnum, checksum, verify, &pkt->data[5]);
     //printf("receive packet num = %d size = %d data = %s\n", seqnum, msg->size, buffer.msgs[seqnum]->data);
     while (buffer.msgs[buffer.seqnum]) {
         //printf("Receiver_ToUpperLayer num = %d size = %d data = %s\n", buffer.seqnum, buffer.msgs[buffer.seqnum]->size, buffer.msgs[buffer.seqnum]->data);
@@ -168,6 +168,7 @@ void Receiver_FromLowerLayer(struct packet *pkt)
         buffer.msgs[buffer.seqnum] = NULL;
         buffer.addSeqNum(1);
         window.slideForward(1);
+        
         //window.debug();
     }
 }
