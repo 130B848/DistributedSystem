@@ -26,20 +26,20 @@
 #include <vector>
 
 const int WINDOW_SIZE = 10;
-const int MAX_SEQ = 19;
+const int MAX_SEQ = 25;
 const double TIMEOUT = 0.3;
 
-struct Window {
+static struct SenderWindow {
     int begin;
     int end;
     int size;
     std::vector<bool> ack_record;
 
-    Window():begin(0), end(WINDOW_SIZE - 1), size(0) {}
+    SenderWindow():begin(0), end(WINDOW_SIZE - 1), size(0) {}
 
     void slideForward(int steps) {
-        begin = (begin + steps) % WINDOW_SIZE;
-        end = (end + steps) % WINDOW_SIZE;
+        begin = (begin + steps) % MAX_SEQ;
+        end = (end + steps) % MAX_SEQ;
     }
 
     bool isFull() {
@@ -50,25 +50,33 @@ struct Window {
         if (begin < end) {
             return ((seqnum >= begin) && (seqnum <= end));
         } else {
-            return (((seqnum >= begin) && (seqnum < WINDOW_SIZE)) || 
+            return (((seqnum >= begin) && (seqnum < MAX_SEQ)) || 
                     ((seqnum >= 0) && (seqnum <= end)));
         }
     }
-};
 
-struct Buffer {
+    void debug() {
+        printf("===sender debug: window from %d to %d, size = %d\n", begin, end, size);
+    }
+} window;
+
+static struct SenderBuffer {
     int seqnum;
     std::deque<packet> pkts;
 
-    Buffer():seqnum(0) {}
+    SenderBuffer():seqnum(0) {}
 
     void addSeqNum(int num) {
         seqnum = (seqnum + num) % MAX_SEQ;
     }
-};
 
-static Window window;
-static Buffer buffer;
+    void debug() {
+        printf("===sender debug: seqnum = %d, pkts.size = %d\n", seqnum, pkts.size());
+    }
+} buffer;
+
+//static Window window;
+//static Buffer buffer;
 static unsigned short checksum(const char *buf, unsigned size);
 
 /* sender initialization, called once at the very beginning */
@@ -122,7 +130,7 @@ void Sender_FromUpperLayer(struct message *msg)
         pkt.data[2] = 0xFF; // 0xFF represents invalid
         
         unsigned short *csp = (unsigned short *)(pkt.data + 3);
-        *csp = checksum(msg->data+cursor, maxpayload_size - 1);
+        *csp = checksum(msg->data+cursor, maxpayload_size);
         
 	    memcpy(pkt.data+header_size, msg->data+cursor, maxpayload_size);
         
@@ -134,8 +142,10 @@ void Sender_FromUpperLayer(struct message *msg)
                 Sender_StartTimer(TIMEOUT);
             }
             window.size++;
-            //printf("send packet num = %d data = %s\n", pkt.data[1], &pkt.data[5]);
+            //printf("send packet num = %d size = %d data = %s\n", pkt.data[1], pkt.data[0], &pkt.data[5]);
 	        Sender_ToLowerLayer(&pkt);
+            //window.debug();
+            //buffer.debug();
         }
 
 	    /* move the cursor */
@@ -153,7 +163,7 @@ void Sender_FromUpperLayer(struct message *msg)
         pkt.data[2] = 0xFF; // 0xFF represents invalid
         
         unsigned short *csp = (unsigned short *)(pkt.data + 3);
-        *csp = checksum(msg->data+cursor, msg->size - cursor - 1);
+        *csp = checksum(msg->data+cursor, msg->size - cursor);
         
 	    memcpy(pkt.data+header_size, msg->data+cursor, pkt.data[0]);
 
@@ -165,8 +175,10 @@ void Sender_FromUpperLayer(struct message *msg)
                 Sender_StartTimer(TIMEOUT);
             }
             window.size++;
-            //printf("send packet num = %d data = %s\n", pkt.data[1], &pkt.data[5]);
+            //printf("send packet num = %d size = %d data = %s\n", pkt.data[1], pkt.data[0], &pkt.data[5]);
 	        Sender_ToLowerLayer(&pkt);
+            //window.debug();
+            //buffer.debug();
         }
     }
 }
@@ -178,15 +190,20 @@ void Sender_FromLowerLayer(struct packet *pkt)
     //printf("enter Sender_FromLowerLayer\n");
     int header_size = 5;
     int pkt_size = pkt->data[0];
-    unsigned short verify = checksum(pkt->data+header_size, pkt_size - 1);
+    //printf("===sender pkt_size = %d\n", pkt_size);
+    if ((pkt_size < 0) || (pkt_size > (RDT_PKTSIZE - header_size))) {
+        //printf("pkt_size = %d\n", pkt_size);
+        return;
+    }
+    unsigned short verify = checksum(pkt->data+header_size, pkt_size);
     unsigned short checksum = *(unsigned short *)(pkt->data + 3);
     if (verify != checksum) {
-        printf("sender checksum = %u verify = %u\n", checksum, verify);
+        //printf("sender checksum = %u verify = %u\n", checksum, verify);
         return;
     }
 
     int acknum = pkt->data[2] & 0xFF;
-    printf("acknum = %d\n", acknum);
+    //printf("acknum = %d\n", acknum);
     if (!window.isInRange(acknum)) {
         return; // have acked before
     }
@@ -198,6 +215,9 @@ void Sender_FromLowerLayer(struct packet *pkt)
         buffer.pkts.pop_front();
         buffer.addSeqNum(1);
         resetTimer = true;
+        window.slideForward(1);
+            //window.debug();
+            //buffer.debug();
     }
 
     /* if no more packets is remained */
@@ -207,9 +227,10 @@ void Sender_FromLowerLayer(struct packet *pkt)
 
     int max_size = (WINDOW_SIZE > buffer.pkts.size()) ? buffer.pkts.size() : WINDOW_SIZE;
     while (window.size < max_size) {
-        Sender_ToLowerLayer(&(buffer.pkts[window.size]));
+        Sender_ToLowerLayer(&(buffer.pkts[window.size - 1]));
         window.size++;
-        window.slideForward(1);
+            //window.debug();
+            //buffer.debug();
     }
     if (resetTimer) {
         Sender_StartTimer(TIMEOUT);
@@ -219,20 +240,28 @@ void Sender_FromLowerLayer(struct packet *pkt)
 /* event handler, called when the timer expires */
 void Sender_Timeout()
 {
-    //printf("enter Sender_Timeout\n");
-    //if (buffer.pkts.empty()) {
-    //    return;
-    //}
+    if (buffer.pkts.empty()) {
+        return;
+    }
 
-    //for (int i = 0; i < window.size; i++) {
-    //    if (!window.ack_record[(buffer.seqnum + i) % MAX_SEQ]) {
-    //        Sender_ToLowerLayer(&(buffer.pkts[i]));
-    //        Sender_StartTimer(TIMEOUT);
-    //    }
-    //}
+    for (int i = 0; i < window.size; i++) {
+        if (!window.ack_record[(buffer.seqnum + i) % MAX_SEQ]) {
+            //printf("enter Sender_Timeout resend num = %d\n", (buffer.seqnum + i) % MAX_SEQ);
+            Sender_ToLowerLayer(&(buffer.pkts[i]));
+            Sender_StartTimer(TIMEOUT);
+        }
+    }
 }
 
 static unsigned short checksum(const char *buf, unsigned size) {
+    if (!buf) {
+        printf("warning!!! size = %u\n",size);
+        return 0;
+    }
+    if (size) {
+        size--;
+    }
+
     unsigned long long sum = 0;
     const unsigned long long *b = (unsigned long long *) buf;
 

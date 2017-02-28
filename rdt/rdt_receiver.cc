@@ -25,19 +25,19 @@
 #include <vector>
 
 const int WINDOW_SIZE = 10;
-const int MAX_SEQ = 19;
+const int MAX_SEQ = 25;
 const double TIMEOUT = 0.3;
 
-struct Window {
+static struct ReceiverWindow {
     int begin;
     int end;
     int size;
 
-    Window():begin(0), end(WINDOW_SIZE - 1), size(0) {}
+    ReceiverWindow():begin(0), end(WINDOW_SIZE - 1), size(0) {}
 
     void slideForward(int steps) {
-        begin = (begin + steps) % WINDOW_SIZE;
-        end = (end + steps) % WINDOW_SIZE;
+        begin = (begin + steps) % MAX_SEQ;
+        end = (end + steps) % MAX_SEQ;
     }
 
     bool isFull() {
@@ -48,25 +48,33 @@ struct Window {
         if (begin < end) {
             return ((seqnum >= begin) && (seqnum <= end));
         } else {
-            return (((seqnum >= begin) && (seqnum < WINDOW_SIZE)) || 
+            return (((seqnum >= begin) && (seqnum < MAX_SEQ)) || 
                     ((seqnum >= 0) && (seqnum <= end)));
         }
     }
-};
+    
+    void debug() {
+        printf("===receiver debug: window from %d to %d, size = %d\n", begin, end, size);
+    }
+} window;
 
-struct Buffer {
+static struct ReceiverBuffer {
     int seqnum;
     std::vector<message *> msgs;
 
-    Buffer():seqnum(0) {}
+    ReceiverBuffer():seqnum(0) {}
 
     void addSeqNum(int num) {
         seqnum = (seqnum + num) % MAX_SEQ;
     }
-};
+    
+    void debug() {
+        printf("===receiver debug: seqnum = %d, pkts.size = %d\n", seqnum, msgs.size());
+    }
+} buffer;
 
-static Window window;
-static Buffer buffer;
+//static Window window;
+//static Buffer buffer;
 static unsigned short checksum(const char *buf, unsigned size);
 
 /* receiver initialization, called once at the very beginning */
@@ -99,26 +107,33 @@ void Receiver_FromLowerLayer(struct packet *pkt)
     /* 1-byte header indicating the size of the payload */
     int header_size = 5;
     int pkt_size = pkt->data[0];
-    //pkt->data[RDT_PKTSIZE - 1] = 0;
-    unsigned short verify = checksum(pkt->data+header_size, pkt_size - 1);
+    //printf("===receiver pkt_size = %d\n", pkt_size);
+    if ((pkt_size < 0) || (pkt_size > (RDT_PKTSIZE - header_size))) {
+        //printf("pkt_size = %d\n", pkt_size);
+        return;
+    }
+    unsigned short verify = checksum(pkt->data+header_size, pkt_size);
     unsigned short checksum = *(unsigned short *)(pkt->data + 3);
     int seqnum = pkt->data[1] & 0xFF;
     if (verify != checksum) { 
-        printf("seqnum = %d checksum = %u verify = %u data = %s\n", seqnum, checksum, verify, &pkt->data[5]);
+        //printf("seqnum = %d checksum = %u verify = %u data = %s\n", seqnum, checksum, verify, &pkt->data[5]);
         return;
     }
     
     //int seqnum = pkt->data[1] & 0xFF;
     pkt->data[1] = 0xFF; // 0xFF represents invalid
     pkt->data[2] = seqnum & 0xFF;
+    Receiver_ToLowerLayer(pkt);
     /* out of range packet also need ACK */
     if (!window.isInRange(seqnum)) {
-        Receiver_ToLowerLayer(pkt);
+        //printf("%d out of range return\n", seqnum);
+        //window.debug();
+        //buffer.debug();
         return;
     }
     /* have acked more than once */
     if (buffer.msgs[seqnum]) {
-        Receiver_ToLowerLayer(pkt);
+        //printf("has been acked return\n");
         return;
     }
 
@@ -132,16 +147,17 @@ void Receiver_FromLowerLayer(struct packet *pkt)
     if (msg->size<0) msg->size=0;
     if (msg->size>RDT_PKTSIZE-header_size) msg->size=RDT_PKTSIZE-header_size;
 
-    msg->data = (char*) malloc(msg->size);
+    msg->data = (char*) malloc(msg->size + 1);
     ASSERT(msg->data!=NULL);
-    memset(msg->data, 0, msg->size);
+    memset(msg->data, 0, msg->size + 1);
     memcpy(msg->data, pkt->data+header_size, msg->size);
-    printf("receive packet num = %d data = %s\n", seqnum, &pkt->data[5]);
+    //printf("receive packet num = %d data = %s\n", seqnum, &pkt->data[5]);
 
     buffer.msgs[seqnum] = msg;
-    //printf("receive packet num = %d data = %s\n", seqnum, buffer.msgs[seqnum]->data);
+    //printf("receive packet num = %d size = %d data = %s\n", seqnum, msg->size, buffer.msgs[seqnum]->data);
+    //printf("receive packet num = %d size = %d data = %s\n", seqnum, msg->size, buffer.msgs[seqnum]->data);
     while (buffer.msgs[buffer.seqnum]) {
-        printf("Receiver_ToUpperLayer num = %d size = %d data = %s\n", buffer.seqnum, buffer.msgs[buffer.seqnum]->size, buffer.msgs[buffer.seqnum]->data);
+        //printf("Receiver_ToUpperLayer num = %d size = %d data = %s\n", buffer.seqnum, buffer.msgs[buffer.seqnum]->size, buffer.msgs[buffer.seqnum]->data);
         Receiver_ToUpperLayer(buffer.msgs[buffer.seqnum]);
         if (buffer.msgs[buffer.seqnum] && buffer.msgs[buffer.seqnum]->data) {
             free(buffer.msgs[buffer.seqnum]->data);
@@ -149,12 +165,22 @@ void Receiver_FromLowerLayer(struct packet *pkt)
         if (buffer.msgs[buffer.seqnum]) {
             free(buffer.msgs[buffer.seqnum]);
         }
+        buffer.msgs[buffer.seqnum] = NULL;
         buffer.addSeqNum(1);
         window.slideForward(1);
+        //window.debug();
     }
 }
 
 static unsigned short checksum(const char *buf, unsigned size) {
+    if (!buf) {
+        printf("warning!!! size = %u\n", size);
+        return 0;
+    }
+    if (size) {
+        size--;
+    }
+
     unsigned long long sum = 0;
     const unsigned long long *b = (unsigned long long *) buf;
 

@@ -212,6 +212,8 @@ static struct message *generate_msg()
     }
 
     tot_chars_sent += msg->size;
+    
+    //printf("msg_size = %d tot_chars_sent = %d\n", msg->size, tot_chars_sent);
 
     return msg;
 }
@@ -334,17 +336,26 @@ void Receiver_ToUpperLayer(struct message *msg)
     static char cnt = 0;
 
     for (int i=0; i<msg->size; i++) {
-	/* message verification */
-	if (msg->data[i] != '0' + cnt) {
-	    message_verfication_passed = false;
-	}
-	cnt = (cnt+1) % 10;
+	    /* message verification */
+	    if (msg->data[i] != '0' + cnt) {
+	        message_verfication_passed = false;
+            printf("msg->data[%d] = %c should be %c\n", i, msg->data[i], '0' + cnt);
+            printf("msg_size = %d data = %s\n", msg->size, msg->data);
+            exit(0);
+            
+	    }
+	    cnt = (cnt+1) % 10;
 
-	if (tracing_level>=2)
-	    fputc(msg->data[i], stdout);
+	    if (tracing_level>=2)
+	        fputc(msg->data[i], stdout);
     }
 
     tot_chars_delivered += msg->size;
+
+    //if (!message_verfication_passed) {
+    //    printf("msg_size = %d tot_chars_delivered = %d\n", msg->size, tot_chars_delivered);
+    //    exit(0);
+    //}
 }
 
 
