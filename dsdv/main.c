@@ -209,14 +209,14 @@ public:
     }
 };
 
-void send(int fd, MobileHost host, std::string filename) {
+void sending(int fd, MobileHost *host, std::string filename) {
     for (;;) {
         mutex.lock();
-        host.refreshNeighborInfo(filename);
-        host.forwardingTable[host.name].seqNum += 2;
+        host->refreshNeighborInfo(filename);
+        host->forwardingTable[host->name].seqNum += 2;
         mutex.unlock();
-        std::string packet = host.serialize();
-        for (const auto &it : host.neighborhood) {
+        std::string packet = host->serialize();
+        for (const auto &it : host->neighborhood) {
             socketSend(fd, it.second.port, packet);
         }
         sleep(1);
@@ -262,7 +262,7 @@ int main(int argc, char *argv[]) {
     fin.close();
 
     auto fd = socketBind(port);
-    std::thread sender(send, fd, host, filename);
+    std::thread sender(sending, fd, &host, filename);
     //std::thread receiver(receive, fd, host);
     sender.join();
     //receiver.join();
