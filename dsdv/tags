@@ -1,0 +1,22 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+BUFLEN	demo-udp-04/udp-send.c	19;"	d	file:
+BUFLEN	main.c	/^const int BUFLEN = 2048;$/;"	v
+BUFSIZE	demo-udp-04/udp-recv.c	18;"	d	file:
+CC	demo-udp-04/Makefile	/^CC=gcc$/;"	m
+CFLAGS	demo-udp-04/Makefile	/^CFLAGS = -g $/;"	m
+MAX	main.c	/^const int MAX = 10000;$/;"	v
+MSGS	demo-udp-04/udp-send.c	20;"	d	file:
+SERVICE_PORT	demo-udp-04/port.h	8;"	d
+main	demo-udp-04/udp-recv.c	/^main(int argc, char **argv)$/;"	f
+main	demo-udp-04/udp-send.c	/^int main(void)$/;"	f
+main	main.c	/^int main(int argc, char *argv[]) {$/;"	f
+mutex	main.c	/^std::mutex mutex;$/;"	v
+send	main.c	/^void send(int fd, class MobileHost host, std::string filename) {$/;"	f
+socketBind	main.c	/^int socketBind(int port) {$/;"	f
+socketReceive	main.c	/^int socketReceive(int fd, std::string &str) {$/;"	f
+socketSend	main.c	/^int socketSend(int fd, int port, const std::string &str) {$/;"	f
