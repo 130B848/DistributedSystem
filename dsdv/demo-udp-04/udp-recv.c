@@ -50,7 +50,7 @@ main(int argc, char **argv)
 
 	/* now loop, receiving data and printing what we received */
 	for (;;) {
-		printf("waiting on port %d\n", SERVICE_PORT);
+		printf("waiting on port %d fd is %d\n", SERVICE_PORT, fd);
 		recvlen = recvfrom(fd, buf, BUFSIZE, 0, (struct sockaddr *)&remaddr, &addrlen);
 		if (recvlen > 0) {
 			buf[recvlen] = 0;
@@ -58,10 +58,10 @@ main(int argc, char **argv)
 		}
 		else
 			printf("uh oh - something went wrong!\n");
-		sprintf(buf, "ack %d", msgcnt++);
-		printf("sending response \"%s\"\n", buf);
-		if (sendto(fd, buf, strlen(buf), 0, (struct sockaddr *)&remaddr, addrlen) < 0)
-			perror("sendto");
+		//sprintf(buf, "ack %d", msgcnt++);
+		//printf("sending response \"%s\"\n", buf);
+		//if (sendto(fd, buf, strlen(buf), 0, (struct sockaddr *)&remaddr, addrlen) < 0)
+		//	perror("sendto");
 	}
 	/* never exits */
 }

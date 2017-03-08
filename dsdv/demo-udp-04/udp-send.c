@@ -59,18 +59,18 @@ int main(void)
 	/* now let's send the messages */
 
 	for (i=0; i < MSGS; i++) {
-		printf("Sending packet %d to %s port %d\n", i, server, SERVICE_PORT);
+		printf("Sending packet %d to %s port %d fd is %d\n", i, server, SERVICE_PORT, fd);
 		sprintf(buf, "This is packet %d", i);
 		if (sendto(fd, buf, strlen(buf), 0, (struct sockaddr *)&remaddr, slen)==-1) {
 			perror("sendto");
 			exit(1);
 		}
 		/* now receive an acknowledgement from the server */
-		recvlen = recvfrom(fd, buf, BUFLEN, 0, (struct sockaddr *)&remaddr, &slen);
-                if (recvlen >= 0) {
-                        buf[recvlen] = 0;	/* expect a printable string - terminate it */
-                        printf("received message: \"%s\"\n", buf);
-                }
+		//recvlen = recvfrom(fd, buf, BUFLEN, 0, NULL, NULL);
+        //        if (recvlen >= 0) {
+        //                buf[recvlen] = 0;	/* expect a printable string - terminate it */
+        //                printf("received message: \"%s\"\n", buf);
+        //        }
 	}
 	close(fd);
 	return 0;
