@@ -195,7 +195,7 @@ public:
             fin >> neighborName >> neighborMetric >> neighborPort;
             if (neighborhood[neighborName].metric < MAX) {
                 if (neighborMetric < 0) {
-                    //++forwardingTable[neighborName].seqNum;
+                    ++forwardingTable[neighborName].seqNum;
                     neighborMetric = MAX;
                 }
                 if (neighborhood[neighborName].metric != neighborMetric) {
