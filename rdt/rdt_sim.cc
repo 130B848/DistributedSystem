@@ -339,9 +339,9 @@ void Receiver_ToUpperLayer(struct message *msg)
 	    /* message verification */
 	    if (msg->data[i] != '0' + cnt) {
 	        message_verfication_passed = false;
-            printf("msg->data[%d] = %c should be %c\n", i, msg->data[i], '0' + cnt);
-            printf("msg_size = %d data = %s\n", msg->size, msg->data);
-            exit(0);
+            //printf("msg->data[%d] = %c should be %c\n", i, msg->data[i], '0' + cnt);
+            //printf("msg_size = %d data = %s\n", msg->size, msg->data);
+            //exit(0);
 	    }
 	    cnt = (cnt+1) % 10;
 
