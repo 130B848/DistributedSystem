@@ -4,23 +4,39 @@
 !_TAG_PROGRAM_NAME	Exuberant Ctags	//
 !_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
 !_TAG_PROGRAM_VERSION	5.9~svn20110310	//
-BUFLEN	demo-udp-04/udp-send.c	19;"	d	file:
-BUFLEN	main.c	/^const int BUFLEN = 2048;$/;"	v
-BUFSIZE	demo-udp-04/udp-recv.c	18;"	d	file:
-CC	demo-udp-04/Makefile	/^CC=gcc$/;"	m
-CFLAGS	demo-udp-04/Makefile	/^CFLAGS = -g $/;"	m
-MAX	main.c	/^const int MAX = 10000;$/;"	v
-MSGS	demo-udp-04/udp-send.c	20;"	d	file:
-SERVICE_PORT	demo-udp-04/port.h	8;"	d
-bar	test/test.c	/^void bar(int x)$/;"	f
-foo	test/test.c	/^void foo() $/;"	f
-main	demo-udp-04/udp-recv.c	/^main(int argc, char **argv)$/;"	f
-main	demo-udp-04/udp-send.c	/^int main(void)$/;"	f
-main	main.c	/^int main(int argc, char *argv[]) {$/;"	f
-main	test/test.c	/^int main() $/;"	f
-mutex	main.c	/^std::mutex mutex;$/;"	v
-receiving	main.c	/^void receiving(int fd, MobileHost *host) {$/;"	f
-sending	main.c	/^void sending(int fd, MobileHost *host, std::string filename) {$/;"	f
-socketBind	main.c	/^int socketBind(int port) {$/;"	f
-socketReceive	main.c	/^std::string socketReceive(int fd) {$/;"	f
-socketSend	main.c	/^void socketSend(int fd, int port, const std::string &str) {$/;"	f
+BUFLEN	util.h	/^const int BUFLEN = 2048;$/;"	v
+DSDV_H_	dsdv.h	2;"	d
+ForwardingTableItem	dsdv.h	/^    ForwardingTableItem(std::string n, double m, int s) : nextHop(n), metric(m), seqNum(s) {}$/;"	f	class:ForwardingTableItem
+ForwardingTableItem	dsdv.h	/^class ForwardingTableItem {$/;"	c
+MAX	dsdv.h	/^const int MAX = 10000;$/;"	v
+MobileHost	dsdv.h	/^    MobileHost(std::string n, int p) : name(n), port(p), seqNum(0) {}$/;"	f	class:MobileHost
+MobileHost	dsdv.h	/^class MobileHost {$/;"	c
+NeighborInfo	dsdv.h	/^    NeighborInfo(double m, int p) : metric(m), port(p) {}$/;"	f	class:NeighborInfo
+NeighborInfo	dsdv.h	/^class NeighborInfo {$/;"	c
+RouteTableItem	dsdv.h	/^    RouteTableItem(double m, int s) : metric(m), seqNum(s) {}$/;"	f	class:RouteTableItem
+RouteTableItem	dsdv.h	/^class RouteTableItem {$/;"	c
+UTIL_H_	util.h	2;"	d
+deserialize	dsdv.cpp	/^std::map<std::string, class RouteTableItem> MobileHost::deserialize(const std::string &str, std::string &nextHop) {$/;"	f	class:MobileHost
+forwardingTable	dsdv.h	/^    std::map<std::string, class ForwardingTableItem> forwardingTable;$/;"	m	class:MobileHost
+main	main.cpp	/^int main(int argc, char *argv[]) {$/;"	f
+metric	dsdv.h	/^    double metric;$/;"	m	class:ForwardingTableItem
+metric	dsdv.h	/^    double metric;$/;"	m	class:NeighborInfo
+metric	dsdv.h	/^    double metric;$/;"	m	class:RouteTableItem
+mutex	main.cpp	/^std::mutex mutex;$/;"	v
+name	dsdv.h	/^    std::string name;$/;"	m	class:MobileHost
+neighborhood	dsdv.h	/^    std::map<std::string, class NeighborInfo> neighborhood;$/;"	m	class:MobileHost
+nextHop	dsdv.h	/^    std::string nextHop;$/;"	m	class:ForwardingTableItem
+port	dsdv.h	/^    int port;$/;"	m	class:MobileHost
+port	dsdv.h	/^    int port;$/;"	m	class:NeighborInfo
+printOut	dsdv.cpp	/^void MobileHost::printOut() {$/;"	f	class:MobileHost
+receiving	main.cpp	/^void receiving(int fd, MobileHost *host) {$/;"	f
+refreshNeighborInfo	dsdv.cpp	/^bool MobileHost::refreshNeighborInfo(const std::string &filename) {$/;"	f	class:MobileHost
+sending	main.cpp	/^void sending(int fd, MobileHost *host, std::string filename) {$/;"	f
+seqNum	dsdv.h	/^    int seqNum;$/;"	m	class:ForwardingTableItem
+seqNum	dsdv.h	/^    int seqNum;$/;"	m	class:MobileHost
+seqNum	dsdv.h	/^    int seqNum;$/;"	m	class:RouteTableItem
+serialize	dsdv.cpp	/^std::string MobileHost::serialize() {$/;"	f	class:MobileHost
+socketBind	util.cpp	/^int socketBind(int port) {$/;"	f
+socketReceive	util.cpp	/^std::string socketReceive(int fd) {$/;"	f
+socketSend	util.cpp	/^void socketSend(int fd, int port, const std::string &str) {$/;"	f
+updateForwardingTable	dsdv.cpp	/^void MobileHost::updateForwardingTable(const std::string &nextHop, const std::map<std::string, $/;"	f	class:MobileHost

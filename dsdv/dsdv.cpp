@@ -32,22 +32,22 @@ std::map<std::string, class RouteTableItem> MobileHost::deserialize(const std::s
 void MobileHost::updateForwardingTable(const std::string &nextHop, const std::map<std::string, 
         class RouteTableItem> &routeTable) {
     auto distance = neighborhood[nextHop].metric;
-    std::cout << "========= Receive from " << nextHop << " distance is " << distance << std::endl;
+    //std::cout << "========= Receive from " << nextHop << " distance is " << distance << std::endl;
     for (const auto &it : routeTable) {
         if (it.first == name) {
             continue;
         }
         if (forwardingTable.find(it.first) == forwardingTable.end()) {
-            std::cout << "Add " << it.first << " with " << (it.second.metric + distance) << std::endl;
+            //std::cout << "Add " << it.first << " with " << (it.second.metric + distance) << std::endl;
             forwardingTable[it.first] = ForwardingTableItem(nextHop, it.second.metric + distance, it.second.seqNum);
         } else {
             if (forwardingTable[it.first].seqNum < it.second.seqNum) {
-                std::cout << "SeqNum " << forwardingTable[it.first].seqNum << " < " << it.second.seqNum;
-                std::cout << " Update " << it.first << " from " << forwardingTable[it.first].metric << " to " << (it.second.metric + distance) << std::endl;
+                //std::cout << "SeqNum " << forwardingTable[it.first].seqNum << " < " << it.second.seqNum;
+                //std::cout << " Update " << it.first << " from " << forwardingTable[it.first].metric << " to " << (it.second.metric + distance) << std::endl;
                 forwardingTable[it.first] = ForwardingTableItem(nextHop, it.second.metric + distance, it.second.seqNum);
             } else if ((forwardingTable[it.first].seqNum == it.second.seqNum) &&
                     (forwardingTable[it.first].metric > (it.second.metric + distance))) {
-                std::cout << "Change " << it.first << " from " << forwardingTable[it.first].metric << " to " << (it.second.metric + distance) << std::endl;
+                //std::cout << "Change " << it.first << " from " << forwardingTable[it.first].metric << " to " << (it.second.metric + distance) << std::endl;
                 forwardingTable[it.first] = ForwardingTableItem(nextHop, it.second.metric + distance, it.second.seqNum);
             }
         }
@@ -106,10 +106,12 @@ bool MobileHost::refreshNeighborInfo(const std::string &filename) {
 }
 
 void MobileHost::printOut() {
-    std::cout << "## print-out number " << seqNum << std::endl;
+    std::cout << "## print-out number " << (seqNum / 2) << std::endl;
     for (const auto &it : forwardingTable) {
-        std::cout << "shortest path to node " << it.first << " (seq# " << it.second.seqNum << "): the next hop is "
-            << it.second.nextHop << " and the cost is " << it.second.metric << ", " << name << " -> " << it.first
-            << " : " << it.second.metric << std::endl;
+        if (it.second.metric < MAX) {
+            std::cout << "shortest path to node " << it.first << " (seq# " << it.second.seqNum << "): the next hop is "
+                << it.second.nextHop << " and the cost is " << setiosflags(std::ios::fixed) << std::setprecision(2) 
+                << it.second.metric << ", " << name << " -> " << it.first << " : " << it.second.metric << std::endl;
+        }
     }
 }

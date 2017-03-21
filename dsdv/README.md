@@ -2,11 +2,13 @@
 * Stu. ID: 5140309358
 * Name: Li Dingji
 * E-mail: dj_lee@sjtu.edu.cn
+* This README is much easier to read on GitHub. Click
+[Here](https://github.com/130B848/DistributedSystem/blob/master/dsdv/README.md)!
 
 ## Usage
     $ make
     ......
-    $ ./sim <port> <filename> # repeat in several windows using different port and file
+    $ ./dsdv <port> <filename> # repeat in several windows using different port and file
     ......
     $ make clean
 Choose the picture in this lab assignment's PDF as an example. Assuming that there are 6 mobile hosts ( a, b, c, d, e, f ) binding the port from 3031 to 3036 sequentially. Then you need to type the above command for 6 times in 6 separate shell window ( *tmux* is highly recommended ). Each host will print out its own forwarding table information regularly ( default time slice is 10s ).
